@@ -1,0 +1,210 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9b2e3677-e997-43e9-ac16-6eeca5c9b0a2",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        -48
+      ],
+      "webhookId": "893463cb-f049-4bbe-a112-9b56d1b53a3b"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=-You are a helpful assistant and professional email writer\n- Add my name (Vipul Agarwal) after every email\n- When the user asks to schedule, book, reschedule or set up a session/meeting with a date and time, ALWAYS also create a Google Calendar event using the \"Create an event in Google Calendar\" tool, without asking for confirmation. Include the title, location (with Google Maps link in the description) and the recipient as attendee.\n- Use timezone Asia/Kolkata (+05:30) for all times unless told otherwise. Today is {{ $now.toFormat('yyyy-MM-dd') }}.\n"
+        }
+      },
+      "id": "463aa8f3-25de-4835-965f-7ade8f4ed993",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "medium"
+          }
+        },
+        "options": {}
+      },
+      "id": "833b90e5-e313-4692-bc63-02d9ed91dabf",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Sessionid: {{ $('When chat message received').item.json.sessionId }}"
+      },
+      "id": "3fd84c70-e1df-43c6-8e86-18f4a6bf1922",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "1fcb3be1-5e84-4dce-baf6-8bd61c890255",
+      "name": "Send a message in Gmail",
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        144
+      ],
+      "webhookId": "6d98c084-7e26-447a-920b-9c331c65d727",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DGydd9ns7WxrVQo8",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vipul.agrawal56@gmail.com",
+          "cachedResultName": "vipul.agrawal56@gmail.com"
+        },
+        "start": "={{ $fromAI('Start', `Event start in ISO 8601 with timezone offset, e.g. 2026-10-25T14:00:00+05:30`, 'string') }}",
+        "end": "={{ $fromAI('End', `Event end in ISO 8601 with timezone offset, e.g. 2026-10-25T15:00:00+05:30`, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $fromAI('Attendees', `Comma-separated attendee email addresses`, 'string') }}"
+          ],
+          "description": "={{ $fromAI('Description', `Event details, can include Google Maps link`, 'string') }}",
+          "location": "={{ $fromAI('Location', `Event location / address`, 'string') }}",
+          "sendUpdates": "all",
+          "summary": "={{ $fromAI('Title', `Event title`, 'string') }}"
+        }
+      },
+      "id": "8a35674a-9861-4248-9b28-4b2c203b3cc2",
+      "name": "Create an event in Google Calendar",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        112
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "nXcIlFSswxr157h3",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "ce93db34-887c-4d2a-af18-060bff211934",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b4cc563a404d37bcb6e2be8b61a212d1f23d9c18ad3c1af1c3ed7eda42f3f552"
+  },
+  "nodeGroups": [],
+  "id": "DavgMpJuJvWnp4Jd",
+  "tags": []
+}
